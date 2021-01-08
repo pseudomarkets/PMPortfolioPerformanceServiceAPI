@@ -7,6 +7,14 @@ A .NET Core Web API for calculating Pseudo Markets user portfolio performance
 * MS SQL Server 2017+
 * Mongo DB 4.x
 
+# Performance Data
+The service currently performs the following calculations:
+* Account level unrealized gain or loss (percentage and numerical)
+* Position level unrealized gain or loss (percentage and numerical)
+* Total current invested value
+
+Support for realized gain loss, time weighted return, and more will be coming soon.
+
 # Usage
 This API is designed to be used internally, and has two primary endpoints:
 
