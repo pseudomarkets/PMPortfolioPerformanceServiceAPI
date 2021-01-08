@@ -35,15 +35,35 @@ namespace PMPortfolioPerformanceServiceAPI.Controllers
         [HttpGet]
         public PortfolioPerformanceReport GetPerformanceReportForAccount(int accountId, string date)
         {
-            var performanceReportDate = DateTime.ParseExact(date, "yyyyMMdd",
-                CultureInfo.InvariantCulture);
-            var accountFilter = Builders<BsonDocument>.Filter.Eq("AccountId", accountId);
-            var dateFilter = Builders<BsonDocument>.Filter.Eq("ReportDate", performanceReportDate);
-            var performanceDoc = _mongoCollection.Find(accountFilter & dateFilter).FirstOrDefault();
+            try
+            {
+                var performanceReportDate = DateTime.ParseExact(date, "yyyyMMdd",
+                    CultureInfo.InvariantCulture);
+                var accountFilter = Builders<BsonDocument>.Filter.Eq("AccountId", accountId);
+                var dateFilter = Builders<BsonDocument>.Filter.Eq("ReportDate", performanceReportDate);
+                var performanceDoc = _mongoCollection.Find(accountFilter & dateFilter).FirstOrDefault();
 
-            var performanceReport = BsonSerializer.Deserialize<PortfolioPerformanceReport>(performanceDoc);
-
-            return performanceReport;
+                if (performanceDoc != null)
+                {
+                    var performanceReport = BsonSerializer.Deserialize<PortfolioPerformanceReport>(performanceDoc);
+                    return performanceReport;
+                }
+                else
+                {
+                    PortfolioPerformanceReport report = new PortfolioPerformanceReport()
+                    {
+                        AccountId = accountId
+                    };
+                    return report;
+                }
+            }
+            catch (Exception e)
+            {
+                return new PortfolioPerformanceReport()
+                {
+                    AccountId = accountId
+                };
+            }
         }
 
     }
