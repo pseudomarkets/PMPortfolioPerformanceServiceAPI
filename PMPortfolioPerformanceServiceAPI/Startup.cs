@@ -31,7 +31,7 @@ namespace PMPortfolioPerformanceServiceAPI
             services.AddDbContext<PseudoMarketsDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("SqlServer")));
             services.AddSingleton<MongoClient>(new MongoClient(Configuration.GetConnectionString("MongoDb")));
             services.AddAuthentication(IISDefaults.AuthenticationScheme);
-
+            services.Configure<ServiceInfo>(Configuration.GetSection("ServiceInfo"));
             services.AddControllers();
         }
 

@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using PMCommonEntities.Models.PerformanceReporting;
+using PMPortfolioPerformanceServiceAPI.CalculationRoutines;
 using PMPortfolioPerformanceServiceAPI.Clients;
 using PMPortfolioPerformanceServiceAPI.Models;
 using PMUnifiedAPI.Models;
@@ -50,93 +52,26 @@ namespace PMPortfolioPerformanceServiceAPI.Controllers
 
                 foreach (Accounts account in accounts)
                 {
-                    List<PositionPerformance> positionPerformances = new List<PositionPerformance>();
 
-                    // Step 2: Iterate through each account and grab positions and invested balance
-                    var positionsByAccount = _context.Positions.Where(x => x.AccountId == account.Id);
+                    // Step 2: Iterate through each account and grab positions
+                    var positionsByAccount = _context.Positions.Where(x => x.AccountId == account.Id).ToList();
 
-                    var currentBalance = account.Balance;
-                    double totalCurrentValue = 0;
-                    double investedBalance = 0;
+                    // Step 3: Generate performance report
+                    var reportObject =
+                        await PerformanceReportCalculator.GeneratePortfolioPerformanceReport(account,
+                            positionsByAccount);
 
-                    // Step 3: Iterate through each position to perform position level performance calculations
-                    foreach (Positions position in positionsByAccount)
-                    {
-                        var positionInvestedValue = position.Value;
-                        investedBalance += positionInvestedValue;
-                        var symbol = position.Symbol;
-                        var positionQuantity = position.Quantity;
+                    positionsProcessed += reportObject.Item1;
+                    var performanceReport = reportObject.Item2;
 
-                        var originalCostPerShare = positionInvestedValue / positionQuantity;
-
-                        var currentPrice = await UnifiedApiClient.GetLatestPriceAsync(symbol);
-
-                        var positionCurrentValue = currentPrice * positionQuantity;
-                        totalCurrentValue += positionCurrentValue;
-
-                        var positionUgl = (positionCurrentValue) - (positionInvestedValue);
-
-                        double positionUglPercentage = 0;
-                        if (positionUgl > 0)
-                        {
-                            positionUglPercentage = (positionUgl / positionInvestedValue) * 100;
-                        }
-                        else
-                        {
-                            positionUglPercentage = (-1 * (positionUgl / positionInvestedValue)) * 100;
-                        }
-
-                        positionPerformances.Add(new PositionPerformance()
-                        {
-                            CurrentPrice = currentPrice,
-                            CurrentValue = positionCurrentValue,
-                            PositionUgl = positionUgl,
-                            PositionUglPercentage = positionUglPercentage,
-                            PurchasedPrice = originalCostPerShare,
-                            PurchasedQuantity = positionQuantity,
-                            PurchasedValue = positionInvestedValue,
-                            Symbol = symbol
-                        });
-
-                        positionsProcessed++;
-                    }
-
-                    var portfolioUgl = totalCurrentValue - investedBalance;
-                    double portfolioUglPercentage = 0;
-
-                    if (portfolioUgl > 0)
-                    {
-                        portfolioUglPercentage = (portfolioUgl / investedBalance) * 100;
-                    }
-                    else
-                    {
-                        portfolioUglPercentage = (-1 * (portfolioUglPercentage / investedBalance)) * 100;
-                    }
-
-                    var totalAccountValue = totalCurrentValue + currentBalance;
-
-                    // Step 4: Generate Performance Report object
-                    PortfolioPerformanceReport performanceReport = new PortfolioPerformanceReport()
-                    {
-                        AccountId = account.Id,
-                        CurrentCashBalance = currentBalance,
-                        CurrentInvestmentValue = totalCurrentValue,
-                        PortfolioPerformance = positionPerformances,
-                        CurrentTotalAccountValue = totalAccountValue,
-                        ReportDate = DateTime.Today,
-                        PortfolioUgl = portfolioUgl,
-                        PortfolioUglPercentage = portfolioUglPercentage
-                    };
-
-                    // Step 5: Insert performance data into Mongo DB
+                    // Step 4: Insert performance data into Mongo DB
                     var performanceReportAsBson = performanceReport.ToBsonDocument();
 
                     _mongoCollection.InsertOne(performanceReportAsBson);
                     accountsProcessed++;
-
                 }
 
-                // Step 6: Return the data load results
+                // Step 5: Return the data load results
                 result.AccountsProcessed = accountsProcessed;
                 result.PositionsProcessed = positionsProcessed;
 
