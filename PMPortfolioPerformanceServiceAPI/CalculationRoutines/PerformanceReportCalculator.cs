@@ -48,7 +48,7 @@ namespace PMPortfolioPerformanceServiceAPI.CalculationRoutines
                         break;
                     case DataRequestType.RequestType.HistoricalMarketDataRequest:
                         var historicalData =
-                            await _marketDataServiceClient.GetHistoricalData(symbol, DateTime.Today.ToString("yyyyMMMdd"));
+                            await _marketDataServiceClient.GetHistoricalData(symbol, DateTime.Today.ToString("yyyyMMdd"));
                         currentPrice = historicalData.ClosingPrice;
                         break;
                     default:
