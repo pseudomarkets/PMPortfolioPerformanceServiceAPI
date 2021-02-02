@@ -5,9 +5,10 @@ using System.Threading.Tasks;
 
 namespace PMPortfolioPerformanceServiceAPI.Models
 {
-    public class ServiceInfo
+    public class ServiceConfig
     {
         public string ServiceName { get; set; }
         public string Version { get; set; }
+        public string MarketDataServiceUrl { get; set; }
     }
 }

@@ -9,8 +9,8 @@ using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using PMCommonEntities.Models.PerformanceReporting;
+using PMMarketDataService.DataProvider.Client.Implementation;
 using PMPortfolioPerformanceServiceAPI.CalculationRoutines;
-using PMPortfolioPerformanceServiceAPI.Clients;
 using PMPortfolioPerformanceServiceAPI.Models;
 using PMUnifiedAPI.Models;
 
@@ -26,13 +26,17 @@ namespace PMPortfolioPerformanceServiceAPI.Controllers
         private readonly PseudoMarketsDbContext _context;
         private readonly IMongoDatabase _mongoDatabase;
         private readonly IMongoCollection<BsonDocument> _mongoCollection;
+        private readonly PerformanceReportCalculator _performanceReportCalculator;
+        private readonly MarketDataServiceClient _marketDataServiceClient;
 
-        public DataLoaderController(PseudoMarketsDbContext context, MongoClient mongoClient)
+        public DataLoaderController(PseudoMarketsDbContext context, MongoClient mongoClient, MarketDataServiceClient marketDataServiceClient)
         {
             _context = context;
             _mongoClient = mongoClient;
             _mongoDatabase = _mongoClient.GetDatabase("PseudoMarketsDB");
             _mongoCollection = _mongoDatabase.GetCollection<BsonDocument>("PortfolioPerformance");
+            _marketDataServiceClient = marketDataServiceClient;
+            _performanceReportCalculator = new PerformanceReportCalculator(_marketDataServiceClient);
         }
 
         // GET: api/DataLoader
@@ -58,8 +62,8 @@ namespace PMPortfolioPerformanceServiceAPI.Controllers
 
                     // Step 3: Generate performance report
                     var reportObject =
-                        await PerformanceReportCalculator.GeneratePortfolioPerformanceReport(account,
-                            positionsByAccount);
+                        await _performanceReportCalculator.GeneratePortfolioPerformanceReport(account,
+                            positionsByAccount, DataRequestType.RequestType.HistoricalMarketDataRequest);
 
                     positionsProcessed += reportObject.Item1;
                     var performanceReport = reportObject.Item2;

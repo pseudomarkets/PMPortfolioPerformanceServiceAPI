@@ -3,15 +3,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using PMCommonEntities.Models.PerformanceReporting;
-using PMPortfolioPerformanceServiceAPI.Clients;
+using PMMarketDataService.DataProvider.Client.Implementation;
+using PMPortfolioPerformanceServiceAPI.Models;
 using PMUnifiedAPI.Models;
 
 namespace PMPortfolioPerformanceServiceAPI.CalculationRoutines
 {
-    public static class PerformanceReportCalculator
+    public class PerformanceReportCalculator : IPerformanceReportCalculator
     {
-        public static async Task<Tuple<int, PortfolioPerformanceReport>> GeneratePortfolioPerformanceReport(Accounts account,
-            List<Positions> positions)
+        private readonly MarketDataServiceClient _marketDataServiceClient;
+        public PerformanceReportCalculator(MarketDataServiceClient marketDataServiceClient)
+        {
+            _marketDataServiceClient = marketDataServiceClient;
+        }
+
+        public async Task<Tuple<int, PortfolioPerformanceReport>> GeneratePortfolioPerformanceReport(Accounts account,
+            List<Positions> positions, DataRequestType.RequestType requestType)
         {
             int positionsProcessed = 0;
 
@@ -31,7 +38,23 @@ namespace PMPortfolioPerformanceServiceAPI.CalculationRoutines
 
                 var originalCostPerShare = positionInvestedValue / positionQuantity;
 
-                var currentPrice = await UnifiedApiClient.GetLatestPriceAsync(symbol);
+                double currentPrice = 0;
+
+                switch (requestType)
+                {
+                    case DataRequestType.RequestType.CurrentMarketDataRequest:
+                        var marketData = await _marketDataServiceClient.GetLatestPrice(symbol);
+                        currentPrice = marketData.price;
+                        break;
+                    case DataRequestType.RequestType.HistoricalMarketDataRequest:
+                        var historicalData =
+                            await _marketDataServiceClient.GetHistoricalData(symbol, DateTime.Today.ToString("yyyyMMMdd"));
+                        currentPrice = historicalData.ClosingPrice;
+                        break;
+                    default:
+                        currentPrice = 0;
+                        break;
+                }
 
                 var positionCurrentValue = currentPrice * positionQuantity;
                 totalCurrentValue += positionCurrentValue;

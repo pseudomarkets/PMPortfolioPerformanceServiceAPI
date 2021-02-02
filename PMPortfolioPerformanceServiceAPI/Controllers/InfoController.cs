@@ -13,8 +13,8 @@ namespace PMPortfolioPerformanceServiceAPI.Controllers
     [ApiController]
     public class InfoController : ControllerBase
     {
-        private readonly IOptions<ServiceInfo> _config;
-        public InfoController(IOptions<ServiceInfo> appConfig)
+        private readonly IOptions<ServiceConfig> _config;
+        public InfoController(IOptions<ServiceConfig> appConfig)
         {
             _config = appConfig;
         }
@@ -28,9 +28,9 @@ namespace PMPortfolioPerformanceServiceAPI.Controllers
 
         [HttpGet]
         [Route("InfoJson")]
-        public ServiceInfo InfoJson()
+        public ServiceConfig InfoJson()
         {
-            ServiceInfo info = new ServiceInfo()
+            ServiceConfig info = new ServiceConfig()
             {
                 ServiceName = _config.Value.ServiceName,
                 Version = _config.Value.Version

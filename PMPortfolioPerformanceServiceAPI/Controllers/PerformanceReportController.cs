@@ -10,6 +10,7 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 using PMCommonEntities.Models.PerformanceReporting;
+using PMMarketDataService.DataProvider.Client.Implementation;
 using PMPortfolioPerformanceServiceAPI.CalculationRoutines;
 using PMPortfolioPerformanceServiceAPI.Models;
 
@@ -25,13 +26,17 @@ namespace PMPortfolioPerformanceServiceAPI.Controllers
         private readonly IMongoDatabase _mongoDatabase;
         private readonly IMongoCollection<BsonDocument> _mongoCollection;
         private readonly PseudoMarketsDbContext _context;
+        private readonly MarketDataServiceClient _marketDataServiceClient;
+        private readonly PerformanceReportCalculator _performanceReportCalculator;
 
-        public PerformanceReportController(PseudoMarketsDbContext context, MongoClient mongoClient)
+        public PerformanceReportController(PseudoMarketsDbContext context, MongoClient mongoClient, MarketDataServiceClient marketDataServiceClient)
         {
             _context = context;
             _mongoClient = mongoClient;
             _mongoDatabase = _mongoClient.GetDatabase("PseudoMarketsDB");
             _mongoCollection = _mongoDatabase.GetCollection<BsonDocument>("PortfolioPerformance");
+            _marketDataServiceClient = marketDataServiceClient;
+            _performanceReportCalculator = new PerformanceReportCalculator(_marketDataServiceClient);
         }
 
         [Route("GetCurrentPerformance/{accountId}")]
@@ -46,7 +51,8 @@ namespace PMPortfolioPerformanceServiceAPI.Controllers
                     var positions = _context.Positions.Where(x => x.AccountId == account.Id).ToList();
 
                     var reportObject =
-                        await PerformanceReportCalculator.GeneratePortfolioPerformanceReport(account, positions);
+                        await _performanceReportCalculator.GeneratePortfolioPerformanceReport(account, positions,
+                            DataRequestType.RequestType.CurrentMarketDataRequest);
 
                     return reportObject.Item2;
                 }
