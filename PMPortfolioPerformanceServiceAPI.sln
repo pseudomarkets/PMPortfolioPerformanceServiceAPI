@@ -5,6 +5,10 @@ VisualStudioVersion = 16.0.29728.190
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PMPortfolioPerformanceServiceAPI", "PMPortfolioPerformanceServiceAPI\PMPortfolioPerformanceServiceAPI.csproj", "{F1AD5F05-F45E-4997-922A-23E459558CCC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PseudoMarkets.PerformanceReporting.CalcEngine", "PseudoMarkets.PerformanceReporting.CalcEngine\PseudoMarkets.PerformanceReporting.CalcEngine.csproj", "{FE35927D-A2EA-4271-B560-04480047A3E5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PseudoMarkets.PerformanceReporting.DataAccess", "PseudoMarkets.PerformanceReporting.DataAccess\PseudoMarkets.PerformanceReporting.DataAccess.csproj", "{9F9B98B1-4030-4557-AA6F-4EB7217C35BE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{F1AD5F05-F45E-4997-922A-23E459558CCC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F1AD5F05-F45E-4997-922A-23E459558CCC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F1AD5F05-F45E-4997-922A-23E459558CCC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FE35927D-A2EA-4271-B560-04480047A3E5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FE35927D-A2EA-4271-B560-04480047A3E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FE35927D-A2EA-4271-B560-04480047A3E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FE35927D-A2EA-4271-B560-04480047A3E5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9F9B98B1-4030-4557-AA6F-4EB7217C35BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F9B98B1-4030-4557-AA6F-4EB7217C35BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F9B98B1-4030-4557-AA6F-4EB7217C35BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F9B98B1-4030-4557-AA6F-4EB7217C35BE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

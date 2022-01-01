@@ -11,8 +11,9 @@ using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 using PMCommonEntities.Models.PerformanceReporting;
 using PMMarketDataService.DataProvider.Client.Implementation;
-using PMPortfolioPerformanceServiceAPI.CalculationRoutines;
 using PMPortfolioPerformanceServiceAPI.Models;
+using PseudoMarkets.PerformanceReporting.CalcEngine.Models;
+using PseudoMarkets.PerformanceReporting.CalcEngine.StandardReport.Implementations;
 
 namespace PMPortfolioPerformanceServiceAPI.Controllers
 {
@@ -54,7 +55,7 @@ namespace PMPortfolioPerformanceServiceAPI.Controllers
                         await _performanceReportCalculator.GeneratePortfolioPerformanceReport(account, positions,
                             DataRequestType.RequestType.CurrentMarketDataRequest);
 
-                    return reportObject.Item2;
+                    return reportObject;
                 }
                 else
                 {

@@ -10,9 +10,13 @@
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.4" />
     <PackageReference Include="MongoDB.Driver" Version="2.11.5" />
     <PackageReference Include="PMCommonApiModels" Version="1.0.4" />
-    <PackageReference Include="PMCommonEntities" Version="1.1.8" />
+    <PackageReference Include="PMCommonEntities" Version="1.2.8" />
     <PackageReference Include="PMMarketDataService.DataProvider.Client" Version="1.0.3" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="5.6.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PseudoMarkets.PerformanceReporting.CalcEngine\PseudoMarkets.PerformanceReporting.CalcEngine.csproj" />
   </ItemGroup>
 
 

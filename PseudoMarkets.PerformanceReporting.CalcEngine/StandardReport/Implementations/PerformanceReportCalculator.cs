@@ -1,35 +1,35 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using PMCommonEntities.Models.PerformanceReporting;
-using PMMarketDataService.DataProvider.Client.Implementation;
-using PMPortfolioPerformanceServiceAPI.Models;
+using PMMarketDataService.DataProvider.Client.Interfaces;
 using PMUnifiedAPI.Models;
+using PseudoMarkets.PerformanceReporting.CalcEngine.Models;
+using PseudoMarkets.PerformanceReporting.CalcEngine.StandardReport.Interfaces;
 
-namespace PMPortfolioPerformanceServiceAPI.CalculationRoutines
+namespace PseudoMarkets.PerformanceReporting.CalcEngine.StandardReport.Implementations
 {
     public class PerformanceReportCalculator : IPerformanceReportCalculator
     {
-        private readonly MarketDataServiceClient _marketDataServiceClient;
-        public PerformanceReportCalculator(MarketDataServiceClient marketDataServiceClient)
+        private readonly IMarketDataServiceClient _marketDataServiceClient;
+        
+        public PerformanceReportCalculator(IMarketDataServiceClient marketDataServiceClient)
         {
             _marketDataServiceClient = marketDataServiceClient;
         }
 
-        public async Task<Tuple<int, PortfolioPerformanceReport>> GeneratePortfolioPerformanceReport(Accounts account,
+        public async Task<PortfolioPerformanceReport> GeneratePortfolioPerformanceReport(Accounts account,
             List<Positions> positions, DataRequestType.RequestType requestType)
         {
-            int positionsProcessed = 0;
-
             var currentBalance = account.Balance;
             double totalCurrentValue = 0;
             double investedBalance = 0;
+            
+            var positionPerformanceBag = new ConcurrentBag<PositionPerformance>();
 
-            List<PositionPerformance> positionPerformances = new List<PositionPerformance>();
-
-            // Iterate through each position to perform position level performance calculations
-            foreach (Positions position in positions)
+            var calcTasks = positions.Select(async position =>
             {
                 var positionInvestedValue = position.Value;
                 investedBalance += positionInvestedValue;
@@ -57,8 +57,6 @@ namespace PMPortfolioPerformanceServiceAPI.CalculationRoutines
                 }
 
                 var positionCurrentValue = currentPrice * positionQuantity;
-                totalCurrentValue += positionCurrentValue;
-
                 var positionUgl = (positionCurrentValue) - (positionInvestedValue);
 
                 double positionUglPercentage = 0;
@@ -71,7 +69,7 @@ namespace PMPortfolioPerformanceServiceAPI.CalculationRoutines
                     positionUglPercentage = (-1 * (positionUgl / positionInvestedValue)) * 100;
                 }
 
-                positionPerformances.Add(new PositionPerformance()
+                positionPerformanceBag.Add(new PositionPerformance()
                 {
                     CurrentPrice = currentPrice,
                     CurrentValue = positionCurrentValue,
@@ -82,10 +80,12 @@ namespace PMPortfolioPerformanceServiceAPI.CalculationRoutines
                     PurchasedValue = positionInvestedValue,
                     Symbol = symbol
                 });
+            });
 
-                positionsProcessed++;
-            }
+            await Task.WhenAll(calcTasks);
 
+            totalCurrentValue = positionPerformanceBag.Select(x => x.CurrentValue).Sum();
+            
             var portfolioUgl = totalCurrentValue - investedBalance;
             double portfolioUglPercentage = 0;
 
@@ -101,20 +101,17 @@ namespace PMPortfolioPerformanceServiceAPI.CalculationRoutines
             var totalAccountValue = totalCurrentValue + currentBalance;
 
             // Generate Performance Report object
-            PortfolioPerformanceReport performanceReport = new PortfolioPerformanceReport()
+            return new PortfolioPerformanceReport()
             {
                 AccountId = account.Id,
                 CurrentCashBalance = currentBalance,
                 CurrentInvestmentValue = totalCurrentValue,
-                PortfolioPerformance = positionPerformances,
+                PortfolioPerformance = new List<PositionPerformance>(positionPerformanceBag),
                 CurrentTotalAccountValue = totalAccountValue,
                 ReportDate = DateTime.Today,
                 PortfolioUgl = portfolioUgl,
                 PortfolioUglPercentage = portfolioUglPercentage
             };
-
-            return new Tuple<int, PortfolioPerformanceReport>(positionsProcessed,
-                performanceReport);
         }
     }
 }

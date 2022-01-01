@@ -1,20 +1,16 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Server.IISIntegration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using MongoDB.Driver;
 using PMMarketDataService.DataProvider.Client.Implementation;
+using PMMarketDataService.DataProvider.Client.Interfaces;
 using PMPortfolioPerformanceServiceAPI.Models;
 
 namespace PMPortfolioPerformanceServiceAPI
@@ -26,7 +22,7 @@ namespace PMPortfolioPerformanceServiceAPI
             Configuration = configuration;
         }
 
-        public IConfiguration Configuration { get; }
+        private IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -36,7 +32,7 @@ namespace PMPortfolioPerformanceServiceAPI
             services.AddSingleton<MongoClient>(new MongoClient(Configuration.GetConnectionString("MongoDb")));
 
             // Inject Market Data Service Provider
-            services.AddSingleton<MarketDataServiceClient>(new MarketDataServiceClient(new HttpClient(),
+            services.AddSingleton<IMarketDataServiceClient>(new MarketDataServiceClient(new HttpClient(),
                 Configuration.GetValue<string>("ServiceConfig:InternalServiceUsername"),
                 Configuration.GetValue<string>("ServiceConfig:InternalServicePassword"),
                 Configuration.GetValue<string>("ServiceConfig:MarketDataServiceUrl")));

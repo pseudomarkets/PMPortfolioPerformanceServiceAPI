@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using PMCommonEntities.Models.PerformanceReporting;
-using PMPortfolioPerformanceServiceAPI.Models;
 using PMUnifiedAPI.Models;
+using PseudoMarkets.PerformanceReporting.CalcEngine.Models;
 
-namespace PMPortfolioPerformanceServiceAPI.CalculationRoutines
+namespace PseudoMarkets.PerformanceReporting.CalcEngine.StandardReport.Interfaces
 {
     public interface IPerformanceReportCalculator
     {
-        public Task<Tuple<int, PortfolioPerformanceReport>> GeneratePortfolioPerformanceReport(Accounts account,
+        Task<PortfolioPerformanceReport> GeneratePortfolioPerformanceReport(Accounts account,
             List<Positions> positions, DataRequestType.RequestType requestType);
     }
 }

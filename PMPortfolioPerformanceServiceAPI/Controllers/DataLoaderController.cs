@@ -1,18 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using PMCommonEntities.Models.PerformanceReporting;
 using PMMarketDataService.DataProvider.Client.Implementation;
-using PMPortfolioPerformanceServiceAPI.CalculationRoutines;
 using PMPortfolioPerformanceServiceAPI.Models;
 using PMUnifiedAPI.Models;
+using PseudoMarkets.PerformanceReporting.CalcEngine.Models;
+using PseudoMarkets.PerformanceReporting.CalcEngine.StandardReport.Implementations;
 
 namespace PMPortfolioPerformanceServiceAPI.Controllers
 {
@@ -64,22 +61,20 @@ namespace PMPortfolioPerformanceServiceAPI.Controllers
                     var reportObject =
                         await _performanceReportCalculator.GeneratePortfolioPerformanceReport(account,
                             positionsByAccount, DataRequestType.RequestType.HistoricalMarketDataRequest);
-
-                    positionsProcessed += reportObject.Item1;
-                    var performanceReport = reportObject.Item2;
+                    
+                    var performanceReport = reportObject;
 
                     // Step 4: Insert performance data into Mongo DB
                     var performanceReportAsBson = performanceReport.ToBsonDocument();
 
-                    _mongoCollection.InsertOne(performanceReportAsBson);
+                    await _mongoCollection.InsertOneAsync(performanceReportAsBson);
                     accountsProcessed++;
                 }
 
                 // Step 5: Return the data load results
                 result.AccountsProcessed = accountsProcessed;
-                result.PositionsProcessed = positionsProcessed;
 
-                if (accountsProcessed > 0 && positionsProcessed > 0)
+                if (accountsProcessed > 0)
                 {
                     result.Status = "OK";
                 }
@@ -95,7 +90,6 @@ namespace PMPortfolioPerformanceServiceAPI.Controllers
                 DataLoadResult result = new DataLoadResult()
                 {
                     AccountsProcessed = 0,
-                    PositionsProcessed = 0,
                     Status = "FAILED"
                 };
 
@@ -106,7 +100,6 @@ namespace PMPortfolioPerformanceServiceAPI.Controllers
         public class DataLoadResult
         {
             public string Status { get; set; }
-            public int PositionsProcessed { get; set; }
             public int AccountsProcessed { get; set; }
         }
     }
